@@ -94,9 +94,10 @@ class ATM {
         requires IsEnteredPasscodeValid(this.enteredPasscode)
         requires IsWithdrawAmountValid(withdrawAmount)
         modifies this
-        ensures this.accountAmount <= old(this.accountAmount) 
-        ensures this.storedAmount <= old(this.storedAmount) 
+        ensures this.accountAmount == old(this.accountAmount) - withdrawAmount
+        ensures this.storedAmount == old(this.storedAmount) - withdrawAmount
         ensures this.cardPasscode == old(this.cardPasscode)
+        ensures this.enteredPasscode == old(this.enteredPasscode)
         ensures this.maxStoredAmount == old(this.maxStoredAmount)
         ensures this.minWithdrawAmount == old(this.minWithdrawAmount)
         ensures this.maxWithdrawAmount == old(this.maxWithdrawAmount)
@@ -109,20 +110,41 @@ class ATM {
     method AddStoredFunds(addedAmount : nat)
         requires IsAddedStoredAmountValid(addedAmount)
         modifies this
-        ensures this.storedAmount >= old(this.storedAmount)
+        ensures this.accountAmount == old(this.accountAmount)
+        ensures this.storedAmount == old(this.storedAmount) + addedAmount
+        ensures this.cardPasscode == old(this.cardPasscode)
+        ensures this.enteredPasscode == old(this.enteredPasscode)
+        ensures this.maxStoredAmount == old(this.maxStoredAmount)
+        ensures this.minWithdrawAmount == old(this.minWithdrawAmount)
+        ensures this.maxWithdrawAmount == old(this.maxWithdrawAmount)
+        ensures this.isCardInserted == old(this.isCardInserted)
     {
         storedAmount := storedAmount + addedAmount;
     }
 
     method Main() {
-        var atm := new ATM(10, 100, 700, 2000);
+        var minWithdrawAmount := 10;
+        var maxWithdrawAmount := 100;
+        var initialSumInATM := 200;
+        var maxSumInATM := 400;
+
+        var atm := new ATM(minWithdrawAmount, maxWithdrawAmount, initialSumInATM, maxSumInATM);
 
         var cardPasscode := 5392;
-        var bankAccountAmount := 100;
-        var withdrawAmount := 30;
+        var bankAccountAmount := 500;
 
         atm.InsertCard(cardPasscode, bankAccountAmount);
         atm.EnterPasscode(cardPasscode);
-        atm.Withdraw(withdrawAmount);
+
+        atm.Withdraw(100);
+        atm.Withdraw(100);
+        
+        atm.AddStoredFunds(400);
+
+        atm.Withdraw(100); 
+        atm.Withdraw(100);
+        atm.Withdraw(100);
+        
+        atm.WithdrawCard();
     }
 }
